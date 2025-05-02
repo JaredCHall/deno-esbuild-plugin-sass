@@ -36,21 +36,39 @@ export function sassToLitPlugin(options: SassPluginOptions = {}): Plugin {
       build.onLoad({ filter: /.*/, namespace: "sass-lit" }, async (args: OnLoadArgs) => {
         const sassPath = resolveSassBinary();
         const inputFile = args.path;
-
-        const proc = new Deno.Command(sassPath, {
+        // build with dart-sass in subprocess
+        const command = new Deno.Command(sassPath, {
           args: [inputFile, "--no-source-map"],
+          stdin: "null",
           stdout: "piped",
-          stderr: "piped",
+          stderr: 'piped',
         });
 
-        const { code, stdout, stderr } = await proc.output();
-        if (code !== 0) {
-          const errorMsg = new TextDecoder().decode(stderr);
-          throw new Error(`Sass compilation failed:\n${errorMsg}`);
+        // spawn the process and save references to the input readers
+        const child = command.spawn();
+        const stdoutReader = child.stdout.getReader()
+        const stderrReader = child.stderr.getReader()
+
+        // wait for the process to finish and resolve input streams
+        const status = await child.status
+        const [stdoutChunk, stderrChunk] = await Promise.all([
+          stdoutReader.read(),
+          stderrReader.read(),
+        ]);
+        const stdout = new TextDecoder().decode(stdoutChunk.value);
+        const stderr = new TextDecoder().decode(stderrChunk.value);
+
+        // cleanup and close the input streams
+        stdoutReader.releaseLock()
+        stderrReader.releaseLock()
+        await child.stdout.cancel()
+        await child.stderr.cancel()
+
+        if (status.code !== 0) {
+          throw new Error(`Sass compilation failed:\n${stderr}`);
         }
 
-        const css = new TextDecoder().decode(stdout);
-        const contents = wrap(css);
+        const contents = wrap(stdout);
 
         return {
           contents,
