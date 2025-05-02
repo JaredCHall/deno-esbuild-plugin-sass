@@ -14,7 +14,17 @@ function resolveSassBinary(): string {
   }
 }
 
-export function sassToLitPlugin(): Plugin {
+interface SassPluginOptions {
+  wrapper?: "lit" | "raw" | ((css: string) => string);
+}
+
+export function sassToLitPlugin(options: SassPluginOptions = {}): Plugin {
+  const wrap = typeof options.wrapper === "function"
+      ? options.wrapper
+      : options.wrapper === "raw"
+          ? (css: string) => `export default \`${css.replace(/`/g, "\\`")}\`;`
+          : (css: string) => `import { css } from \"lit\";\nexport default css\`${css.replace(/`/g, "\\`")}\`;`;
+
   return {
     name: "sass-to-lit",
     setup(build: PluginBuild) {
@@ -40,7 +50,7 @@ export function sassToLitPlugin(): Plugin {
         }
 
         const css = new TextDecoder().decode(stdout);
-        const contents = `import { css } from \"lit\";\nexport default css\`${css.replace(/`/g, "\\`")}\`;`;
+        const contents = wrap(css);
 
         return {
           contents,
