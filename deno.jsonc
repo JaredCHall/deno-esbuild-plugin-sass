@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "deno.ns"]
+  },
+  "imports": {
+    "@esbuild": "https://deno.land/x/esbuild/mod.js",
+    "@deno-plugins": "jsr:@luca/esbuild-deno-loader",
+    "sass-to-lit": "./mod.ts",
+    "lit": "https://esm.sh/lit@2"
+  },
+  "tasks": {
+    "build": "deno run -A examples/build.ts",
+    "test": "deno test -A",
+    "fetch:sass": "deno run --allow-net --allow-write --allow-run --allow-read scripts/fetch_sass.ts"
+  }
+}
