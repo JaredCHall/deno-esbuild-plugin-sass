@@ -10,3 +10,10 @@ await build({
   target: "esnext",
   outfile: "./examples/out.js",
 });
+
+console.log(
+    "%c✨ Build complete! Your styles are Lit and your Sass is sassy. ✨",
+    "color: limegreen; font-weight: bold; padding: 2px;"
+);
+
+Deno.exit(0);
