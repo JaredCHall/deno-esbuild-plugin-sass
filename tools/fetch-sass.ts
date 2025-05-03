@@ -1,5 +1,3 @@
-// scripts/fetch_sass.ts
-
 export async function fetchSass(versionArg?: string) {
   const defaultVersion = "1.87.0";
   const version = Deno.args[0] ?? defaultVersion;

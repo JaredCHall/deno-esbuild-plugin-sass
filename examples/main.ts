@@ -12,3 +12,7 @@ class MyLitApp extends LitElement {
     `;
   }
 }
+
+const styleTag = document.createElement("style");
+styleTag.textContent = style
+document.head.append(styleTag);

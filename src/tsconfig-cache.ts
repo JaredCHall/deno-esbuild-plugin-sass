@@ -1,13 +1,13 @@
-// internal/esbuild/tsconfig_cache.ts
-
 import { parse } from "https://deno.land/std@0.224.0/jsonc/parse.ts";
 
-
+type DenoConfig = {
+  compilerOptions?: Record<string, unknown>;
+};
 /**
  * Writes a fresh esbuild-compatible tsconfig.json to a namespaced cache directory,
  * mirroring Deno's compilerOptions while ensuring decorator support.
  */
-export async function createInternalEsbuildTsconfig(): Promise<string> {
+export async function tsconfigCache(): Promise<string> {
 
   const tsconfigDir = ".cache/deno-esbuild-plugin-sass";
   const tsconfigPath = `${tsconfigDir}/tsconfig.json`;
@@ -20,8 +20,16 @@ export async function createInternalEsbuildTsconfig(): Promise<string> {
     const configFile = await findDenoConfig();
     if (configFile) {
       const text = await Deno.readTextFile(configFile);
-      const parsed = parse(text);
-      compilerOptions = parsed.compilerOptions ?? {};
+      const parsed = parse(text) as unknown;
+
+      if (
+          parsed &&
+          typeof parsed === "object" &&
+          "compilerOptions" in parsed &&
+          typeof (parsed as DenoConfig).compilerOptions === "object"
+      ) {
+        compilerOptions = (parsed as DenoConfig).compilerOptions!;
+      }
     }
   } catch {
     // fail silently — fallback below handles it

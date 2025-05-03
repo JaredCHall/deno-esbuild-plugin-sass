@@ -1,8 +1,8 @@
 import { build } from "@esbuild";
 import { denoPlugins } from "@deno-plugins";
-import { sassToLitPlugin, createInternalEsbuildTsconfig } from "deno-esbuild-plugin-sass";
+import { sassToLitPlugin, tsconfigCache } from "deno-esbuild-plugin-sass";
 
-const tsconfig = await createInternalEsbuildTsconfig();
+const tsconfig = await tsconfigCache();
 
 await build({
   entryPoints: ["./examples/main.ts"],
