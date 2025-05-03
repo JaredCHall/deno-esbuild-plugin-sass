@@ -1,24 +1,13 @@
 import { Plugin, PluginBuild, OnLoadArgs, OnResolveArgs } from "@esbuild";
 import { resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
 
-function resolveSassBinary(): string {
-  const local = new URL("./bin/sass", import.meta.url).pathname;
-  try {
-    Deno.statSync(local);
-    return local;
-  } catch {
-    console.warn(
-        "[sass-to-lit] Falling back to system 'sass' binary. Consider running 'deno task fetch:sass' to install a local one."
-    );
-    return "sass";
-  }
-}
-
 interface SassPluginOptions {
   wrapper?: "lit" | "raw" | ((css: string) => string);
+  binPath: string; // Required
 }
 
-export function sassToLitPlugin(options: SassPluginOptions = {}): Plugin {
+export function sassToLitPlugin(options: SassPluginOptions): Plugin {
+  const { binPath } = options;
   const wrap = typeof options.wrapper === "function"
       ? options.wrapper
       : options.wrapper === "raw"
@@ -28,16 +17,16 @@ export function sassToLitPlugin(options: SassPluginOptions = {}): Plugin {
   return {
     name: "sass-to-lit",
     setup(build: PluginBuild) {
+
       build.onResolve({ filter: /\.s[ac]ss$/ }, (args: OnResolveArgs) => ({
         path: resolve(args.resolveDir, args.path),
         namespace: "sass-lit",
       }));
 
       build.onLoad({ filter: /.*/, namespace: "sass-lit" }, async (args: OnLoadArgs) => {
-        const sassPath = resolveSassBinary();
         const inputFile = args.path;
         // build with dart-sass in subprocess
-        const command = new Deno.Command(sassPath, {
+        const command = new Deno.Command(binPath, {
           args: [inputFile, "--no-source-map"],
           stdin: "null",
           stdout: "piped",

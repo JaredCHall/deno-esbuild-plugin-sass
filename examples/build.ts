@@ -5,7 +5,9 @@ import { sassToLitPlugin } from "sass-to-lit";
 await build({
   entryPoints: ["./examples/main.ts"],
   bundle: true,
-  plugins: [sassToLitPlugin(), ...denoPlugins()],
+  plugins: [sassToLitPlugin({
+    binPath: "./bin/sass",
+  }), ...denoPlugins()],
   format: "esm",
   target: "esnext",
   outfile: "./examples/out.js",

@@ -10,7 +10,9 @@ Deno.test("sassToLitPlugin compiles .scss with lit wrapper", async () => {
     bundle: true,
     write: false,
     format: "esm",
-    plugins: [sassToLitPlugin(), ...denoPlugins()],
+    plugins: [sassToLitPlugin({
+      binPath: "./bin/sass",
+    }), ...denoPlugins()],
   });
 
   const outputText = new TextDecoder().decode(result.outputFiles?.[0].contents);

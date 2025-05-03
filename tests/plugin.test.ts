@@ -26,7 +26,9 @@ const compileWithPlugin = async (plugin: Plugin, path: string): Promise<string> 
 }
 
 Deno.test("sassToLitPlugin wraps .scss in Lit module format", async () => {
-  const plugin = sassToLitPlugin();
+  const plugin = sassToLitPlugin({
+    binPath: "./bin/sass",
+  });
   const contentsText = await compileWithPlugin(plugin, "tests/fixtures/style.scss");
 
   assertStringIncludes(contentsText, "export default css`");
@@ -34,7 +36,7 @@ Deno.test("sassToLitPlugin wraps .scss in Lit module format", async () => {
 });
 
 Deno.test("sassToLitPlugin wraps .scss in raw string format", async () => {
-  const plugin = sassToLitPlugin({ wrapper: "raw" });
+  const plugin = sassToLitPlugin({ wrapper: "raw", binPath: "./bin/sass" });
   const contentsText = await compileWithPlugin(plugin, "tests/fixtures/style.scss");
 
   assertStringIncludes(contentsText, "export default `body {");

@@ -16,10 +16,14 @@ A lightweight, Deno-native esbuild plugin that compiles `.scss` or `.sass` files
 
 ## 📦 Installation
 
-Make sure you have a working [Dart Sass binary](https://github.com/sass/dart-sass/releases). You can fetch it with:
+To install the Sass binary yourself (not bundled), run:
 
 ```sh
-deno task fetch:sass
+deno run -A jsr:@your/module/tools/fetch_sass.ts
+```
+To fetch a specific version:
+```sh
+deno run -A jsr:@your/module/tools/fetch_sass.ts 1.66.1
 ```
 
 ### Windows Notes
@@ -33,6 +37,30 @@ To enable Developer Mode:
 1. Open **Settings**
 2. Go to **Privacy & security → For developers**
 3. Toggle **Developer Mode** to "On"
+
+## Example `deno task sass:fetch` 
+
+`scripts/fetch_sass.ts`:
+```typescript
+import { fetchSass } from "jsr:@your/module/tools/fetch_sass.ts";
+
+await fetchSass();
+```
+
+Add to `deno.json` or `deno.jsonc`:
+```jsonc
+{
+  "tasks": {
+    "sass:fetch": "deno run --allow-net --allow-read --allow-write --allow-run scripts/fetch_sass.ts"
+  }
+}
+```
+
+Usage:
+```shell
+deno task sass:fetch              # fetches default version
+deno task sass:fetch 1.66.1       # fetches a specific version
+```
 
 ## 🚀 Usage
 

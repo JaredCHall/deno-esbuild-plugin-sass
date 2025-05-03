@@ -10,7 +10,7 @@
   },
   "tasks": {
     "build": "deno run -A examples/build.ts",
-    "test": "deno test --allow-read --allow-run --allow-env",
+    "test": "deno test --allow-read --allow-run --allow-env --allow-write",
     "fetch:sass": "deno run --allow-net --allow-write --allow-run --allow-read scripts/fetch_sass.ts",
     "fetch:latest": "deno run --allow-net scripts/latest-sass-version.ts"
   }
