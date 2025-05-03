@@ -22,6 +22,18 @@ Make sure you have a working [Dart Sass binary](https://github.com/sass/dart-sas
 deno task fetch:sass
 ```
 
+### Windows Notes
+
+On Windows, creating symlinks normally requires administrator privileges\. However:
+
+- If you **enable Developer Mode**, symlink creation works without admin rights
+- If Developer Mode is **not enabled**, the script will fall back to copying the binary instead of linking it
+
+To enable Developer Mode:
+1. Open **Settings**
+2. Go to **Privacy & security → For developers**
+3. Toggle **Developer Mode** to "On"
+
 ## 🚀 Usage
 
 Example build script (`examples/build.ts`):

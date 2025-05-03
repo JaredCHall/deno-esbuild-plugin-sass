@@ -1,10 +1,13 @@
 // scripts/fetch_sass.ts
-const version = "1.87.0"; // You can update this as needed
+const defaultVersion = "1.87.0";
+const version = Deno.args[0] ?? defaultVersion;
+
 const baseUrl = `https://github.com/sass/dart-sass/releases/download/${version}`;
 
 const scriptDir = new URL(".", import.meta.url).pathname;
-const destDir = `${scriptDir}../bin`;
-const binPath = `${destDir}/sass`;
+const binDir = `${scriptDir}../bin`;
+const dartSassDir = `${binDir}/dart-sass`;
+const symlinkPath = `${binDir}/sass`;
 
 const platform = Deno.build.os;
 const arch = Deno.build.arch;
@@ -24,6 +27,15 @@ switch (platform) {
     throw new Error(`Unsupported platform: ${platform}`);
 }
 
+// Clean out old dart-sass dir if it exists
+try {
+  await Deno.remove(dartSassDir, { recursive: true });
+  console.log("🧨 Removed previous bin/dart-sass directory");
+} catch (_) {
+  // It didn't exist — nothing to clean
+}
+await Deno.mkdir(dartSassDir, { recursive: true });
+
 const url = `${baseUrl}/${fileName}`;
 console.log(`📦 Downloading: ${url}`);
 
@@ -31,13 +43,15 @@ const res = await fetch(url);
 if (!res.ok) throw new Error(`Failed to download Sass: ${res.statusText}`);
 const bytes = new Uint8Array(await res.arrayBuffer());
 
-await Deno.mkdir(destDir, { recursive: true });
-const archivePath = `${destDir}/${fileName}`;
+await Deno.mkdir(binDir, { recursive: true });
+await Deno.mkdir(dartSassDir, { recursive: true });
+
+const archivePath = `${binDir}/${fileName}`;
 await Deno.writeFile(archivePath, bytes);
 console.log(`✅ Saved to ${archivePath}`);
 
 // Extract archive
-const tempDir = `${destDir}/.dart-sass-tmp`;
+const tempDir = `${binDir}/.dart-sass-tmp`;
 await Deno.mkdir(tempDir, { recursive: true });
 
 if (fileName.endsWith(".zip")) {
@@ -54,32 +68,41 @@ if (fileName.endsWith(".zip")) {
   if (!success) throw new Error("Failed to extract Sass archive");
 }
 
-// Delete archive
 await Deno.remove(archivePath);
 console.log("🧹 Cleaned up archive file.");
 
-// Move sass binary to /bin
-const binaryName = `sass${platform === "windows" ? ".bat" : ""}`;
-const extractedBin = `${tempDir}/${binaryName}`;
-await Deno.rename(extractedBin, binPath);
-await Deno.chmod(binPath, 0o755);
-console.log(`🚀 Moved sass binary to ${binPath}`);
+// Move contents to dart-sass directory
+for await (const entry of Deno.readDir(tempDir)) {
+  const from = `${tempDir}/${entry.name}`;
+  const to = `${dartSassDir}/${entry.name}`;
+  await Deno.rename(from, to);
+}
+await Deno.remove(tempDir, { recursive: true });
+console.log("📂 Dart Sass extracted to bin/dart-sass");
 
-// Move src folder to /bin/src if needed
-const srcPath = `${tempDir}/src`;
-const destSrcPath = `${destDir}/src`;
+// Ensure binary is executable
+const sassBin = `${dartSassDir}/sass${platform === "windows" ? ".bat" : ""}`;
+await Deno.chmod(sassBin, 0o755);
+
+// Create symlink: bin/sass → dart-sass/sass
 try {
-  const stat = await Deno.stat(srcPath);
-  if (stat.isDirectory) {
-    await Deno.rename(srcPath, destSrcPath);
-    console.log("📁 Moved src directory to bin/src");
-  }
+  await Deno.remove(symlinkPath);
 } catch (_) {
-  console.warn("⚠️  No src directory found to move");
+  // ignore if doesn't exist
 }
 
-// Clean up temp directory
-await Deno.remove(tempDir, { recursive: true });
-console.log("🧼 Removed temporary files.");
+try {
+  await Deno.symlink(sassBin, symlinkPath);
+  console.log(`🔗 Created symlink: ${symlinkPath} → dart-sass/sass`);
+} catch (err) {
+  // Windows fallback if symlink fails due to lack of privilege
+  if (platform === "windows" && err instanceof Deno.errors.PermissionDenied) {
+    console.warn("⚠️  Symlink creation failed (likely missing Developer Mode). Falling back to file copy.");
+    await Deno.copyFile(sassBin, symlinkPath);
+    console.log(`📄 Copied binary instead: ${symlinkPath}`);
+  } else {
+    throw err; // rethrow unexpected errors
+  }
+}
 
 console.log("🎉 Dart Sass setup complete.");
