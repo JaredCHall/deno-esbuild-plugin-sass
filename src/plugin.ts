@@ -7,6 +7,7 @@ interface SassPluginOptions {
 }
 
 export function sassToLitPlugin(options: SassPluginOptions): Plugin {
+
   const { binPath } = options;
   const wrap = typeof options.wrapper === "function"
       ? options.wrapper

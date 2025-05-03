@@ -5,8 +5,9 @@
   "imports": {
     "@esbuild": "https://deno.land/x/esbuild/mod.js",
     "@deno-plugins": "jsr:@luca/esbuild-deno-loader",
-    "sass-to-lit": "./mod.ts",
-    "lit": "https://esm.sh/lit@2"
+    "deno-esbuild-plugin-sass": "./mod.ts",
+    "lit": "https://esm.sh/lit@3.3.0",
+    "lit-decorators": "https://esm.sh/lit@3.3.0/decorators"
   },
   "tasks": {
     "build": "deno run -A examples/build.ts",

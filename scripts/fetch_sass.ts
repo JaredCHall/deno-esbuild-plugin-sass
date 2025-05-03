@@ -1,3 +1,3 @@
-import {fetchSass} from "../tools/fetchSass.ts";
+import {fetchSass} from "../tools/fetch-sass.ts";
 
 await fetchSass();

@@ -1,9 +1,12 @@
 import { build } from "@esbuild";
 import { denoPlugins } from "@deno-plugins";
-import { sassToLitPlugin } from "sass-to-lit";
+import { sassToLitPlugin, createInternalEsbuildTsconfig } from "deno-esbuild-plugin-sass";
+
+const tsconfig = await createInternalEsbuildTsconfig();
 
 await build({
   entryPoints: ["./examples/main.ts"],
+  tsconfig,
   bundle: true,
   plugins: [sassToLitPlugin({
     binPath: "./bin/sass",
